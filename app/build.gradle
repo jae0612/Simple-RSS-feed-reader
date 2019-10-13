@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.1"
+
     defaultConfig {
         applicationId "com.rssfeeder"
         minSdkVersion 27
@@ -20,9 +21,10 @@ android {
 }
 
 dependencies {
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+
     // https://mvnrepository.com/artifact/com.rometools/rome
     implementation group: 'com.rometools', name: 'rome', version: '1.12.2'
     compileOnly 'org.projectlombok:lombok:1.18.10'
@@ -30,4 +32,17 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    // Jihwan
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation "androidx.recyclerview:recyclerview:1.0.0"
+    implementation "com.google.android.material:material:1.0.0"
+    implementation "androidx.lifecycle:lifecycle-runtime:2.1.0"
+    implementation "androidx.lifecycle:lifecycle-extensions:2.1.0"
+    implementation "com.squareup.picasso:picasso:2.71828"
+    implementation "com.squareup.okhttp3:okhttp:3.12.0"
+
+
 }
