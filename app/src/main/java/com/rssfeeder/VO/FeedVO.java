@@ -5,7 +5,7 @@ import com.rometools.rome.feed.synd.SyndCategory;
 import java.util.List;
 
 import lombok.Data;
-
+//Jae
 @Data
 public class FeedVO {
 

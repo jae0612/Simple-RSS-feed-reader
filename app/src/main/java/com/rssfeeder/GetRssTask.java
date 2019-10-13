@@ -3,24 +3,32 @@ package com.rssfeeder;
 import android.os.AsyncTask;
 import android.os.StrictMode;
 
+import com.rometools.rome.feed.rss.Content;
+import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+
+import com.rometools.modules.mediarss.MediaEntryModule;
+import com.rometools.modules.mediarss.MediaModule;
+import com.rometools.modules.mediarss.types.MediaContent;
+import com.rometools.modules.mediarss.types.Rating;
+import com.rometools.modules.mediarss.types.Thumbnail;
 import com.rssfeeder.VO.FeedVO;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+//Jae
 public class GetRssTask extends AsyncTask<String,Void,Void> {
 
     RssListener listener;
     List<FeedVO> feedList = new ArrayList<>();
+    @Override
     protected Void doInBackground(String[] urls) {
 
-//        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-//        StrictMode.setThreadPolicy(policy);
         for(String url: urls) {
             try {
                 URL feedUrl = new URL(url);
@@ -33,7 +41,21 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
                     feedObj.setTitle(entry.getTitle());
                     feedObj.setAuthor(entry.getAuthor());
                     feedObj.setDescription(entry.getDescription().getValue());
-                    feedObj.setImageTitle(entry.getSource().getImage().getTitle());
+                    feedObj.setPubDate(entry.getPublishedDate().toString());
+
+                    //parse image url
+                    MediaEntryModule module = (MediaEntryModule) entry.getModule(MediaModule.URI);
+                    Thumbnail[] thumbnails = null;
+                    MediaContent[] contents = null;
+                    if(module != null) {
+                        thumbnails = module.getMetadata().getThumbnail();
+                        contents = module.getMediaContents();
+                    }
+                    if(thumbnails != null && thumbnails.length > 0)
+                        feedObj.setImageUrl(thumbnails[0].getUrl().toString());
+                    else if(contents != null && contents.length > 0)
+                        feedObj.setImageUrl(contents[0].getReference().toString());
+
                     feedList.add(feedObj);
                 }
                 for (FeedVO vo : feedList)

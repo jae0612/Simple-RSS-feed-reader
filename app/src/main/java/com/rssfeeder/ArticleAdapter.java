@@ -56,7 +56,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
         FeedVO currentArticle = articles.get(position);
 
-        String pubDateString = "pubDate";
+        String pubDateString = currentArticle.getPubDate();
         /*
         try {
             String sourceDateString = currentArticle.getPubDate();
@@ -75,12 +75,12 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
         viewHolder.title.setText(currentArticle.getTitle());
 
-        /*
+
         Picasso.get()
-                .load(currentArticle.getImage())
-                .placeholder(R.drawable.placeholder)
+                .load(currentArticle.getImageUrl())
+                //.placeholder(R.drawable.placeholder)
                 .into(viewHolder.image);
-        */
+
 
 
         viewHolder.pubDate.setText(pubDateString);

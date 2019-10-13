@@ -16,8 +16,8 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import com.rssfeeder.VO.FeedVO;
-
-public class MainViewModel extends ViewModel {
+//Jae
+public class MainViewModel extends ViewModel implements RssListener{
 
     private MutableLiveData<List<FeedVO>> articleListLive = null;
     private String urlString = "https://www.cnet.com/rss/news/";
@@ -45,30 +45,17 @@ public class MainViewModel extends ViewModel {
 
     public void fetchFeed() {
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        List<FeedVO> feedList = new ArrayList<>();
-        try {
-            // test url
-            URL feedUrl = new URL(urlString);
-            StringBuilder sb = new StringBuilder();
-            SyndFeedInput input = new SyndFeedInput();
-            SyndFeed feed = input.build(new XmlReader(feedUrl));
+        GetRssTask rssTask = new GetRssTask();
+        rssTask.setListener(this);
+        rssTask.execute(urlString);
 
-            // read entries and add to the list<FeedVO>
-            for(SyndEntry entry: feed.getEntries()){
-                FeedVO feedObj = new FeedVO();
-                feedObj.setTitle(entry.getTitle());
 
-                feedList.add(feedObj);
-            }
+    }
 
-            setArticleList(feedList);
-
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("ERROR: "+ex.getMessage());
-        }
+    //callback function from GetRssTask
+    @Override
+    public void onFeedReceived(List<FeedVO> feedList) {
+        setArticleList(feedList);
+        System.out.println("call back called");
     }
 }

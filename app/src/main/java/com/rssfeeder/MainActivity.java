@@ -11,8 +11,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -26,14 +29,16 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import com.rssfeeder.Handler.DbHandler;
 import com.rssfeeder.VO.FeedVO;
+import com.rssfeeder.RssFeedContract.FeedEntry;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements RssListener{
+public class MainActivity extends AppCompatActivity {
 
     // Jihwan
     private RecyclerView mRecyclerView;
@@ -121,6 +126,10 @@ public class MainActivity extends AppCompatActivity implements RssListener{
         } else if (isNetworkAvailable()) {
             viewModel.fetchFeed();
         }
+
+        //DB access
+        writeArchieve();
+        readArchieve();
     }
 
     public boolean isNetworkAvailable() {
@@ -133,25 +142,42 @@ public class MainActivity extends AppCompatActivity implements RssListener{
         return true;
     }
 
+    //SQLITE DB access
+    //Jae
+    //DB write
+    public void writeArchieve(){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(FeedEntry.COLUMN_NAME_LINK,"test.test.com");
+        long rowId = db.insert(FeedEntry.TABLE_NAME, null,values);
+    }
 
+    //DB read
+    public void readArchieve(){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+        String order = FeedEntry.COLUMN_NAME_PUBLISH_DATE + " DESC";
+        Cursor cursor = db.query(FeedEntry.TABLE_NAME,null,null,null,null,null,order,null);
+        //Just link
+        List items = new ArrayList<>();
+        while(cursor.moveToNext()) {
+            String item = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_LINK));
+            items.add(item);
+        }
 
-
-    public void testFeed(View view){
-        GetRssTask rssTask = new GetRssTask();
-        rssTask.setListener(this);
-        rssTask.execute("https://www.cnet.com/rss/news/");
-
+        System.out.println(items.get(0));
 
 
     }
 
+    //DB Close
     @Override
-    public void onFeedReceived(List<FeedVO> feedList) {
-        StringBuilder sb = new StringBuilder();
-        TextView tv = (TextView)findViewById(R.id.window);
-        for (FeedVO vo : feedList)
-            sb.append(vo.getTitle() + "\n");
-        tv.setText(sb);
+    protected void onDestroy() {
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        dbHandler.close();
+        super.onDestroy();
     }
 
 }
