@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RssListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,34 +29,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void testFeed(View view){
+        GetRssTask rssTask = new GetRssTask();
+        rssTask.setListener(this);
+        rssTask.execute("https://www.cnet.com/rss/news/");
+
+
+
+    }
+
+    @Override
+    public void onFeedReceived(List<FeedVO> feedList) {
+        StringBuilder sb = new StringBuilder();
         TextView tv = (TextView)findViewById(R.id.window);
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        List<FeedVO> feedList = new ArrayList<>();
-        try {
-            URL feedUrl = new URL("https://www.cnet.com/rss/news/");
-            StringBuilder sb = new StringBuilder();
-            SyndFeedInput input = new SyndFeedInput();
-            SyndFeed feed = input.build(new XmlReader(feedUrl));
-
-
-            for(SyndEntry entry: feed.getEntries()){
-                FeedVO feedObj = new FeedVO();
-                feedObj.setTitle(entry.getTitle());
-                feedList.add(feedObj);
-            }
-            for(FeedVO vo : feedList)
-                sb.append(vo.getTitle() + "\n");
-
-            tv.setText(sb);
-
-
-
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("ERROR: "+ex.getMessage());
-        }
-
+        for (FeedVO vo : feedList)
+            sb.append(vo.getTitle() + "\n");
+        tv.setText(sb);
     }
 }
