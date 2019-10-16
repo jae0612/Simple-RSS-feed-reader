@@ -20,9 +20,17 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.rometools.rome.feed.synd.SyndEntry;
@@ -55,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
 
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
 
@@ -101,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 mAdapter.getArticleList().clear();
                 mAdapter.notifyDataSetChanged();
                 mSwipeRefreshLayout.setRefreshing(true);
-                viewModel.fetchFeed();
+                viewModel.fetchFeed(); //read feed when refresh
             }
         });
 
@@ -137,6 +144,102 @@ public class MainActivity extends AppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
          */
         return true;
+    }
+
+
+    // Add Menu
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    // Menu item selected
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+
+        if (id == R.id.action_settings) {
+            // 'About' clicked
+            androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setTitle(R.string.app_name);
+            alertDialog.setMessage(Html.fromHtml(MainActivity.this.getString(R.string.info_text) +
+                    MainActivity.this.getString(R.string.author)));
+            alertDialog.setButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL, "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            alertDialog.show();
+
+            ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+        }else if (id == R.id.add_feeder) {
+            // 'Add a Feeder' clicked
+            androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setTitle("Add a Feeder");
+            alertDialog.setMessage("Enter a feeder URL: ");
+
+            final EditText input = new EditText(MainActivity.this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT);
+            input.setLayoutParams(lp);
+            alertDialog.setView(input); // uncomment this line
+
+            alertDialog.setButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL, "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            String url = input.getText().toString();
+                            viewModel.addFeeder(url);
+                            dialog.dismiss();
+                        }
+                    });
+            alertDialog.show();
+
+            ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+        }else if (id == R.id.delete_feeder) {
+            // 'Delete Feeders' clicked
+
+            final String[] feedersList = viewModel.getFeeders();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Select feeders to delete");
+
+            final boolean[] checkedItems = new boolean[feedersList.length]; //this will checked the items when user open the dialog
+            builder.setMultiChoiceItems(feedersList, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                    //Toast.makeText(this, "Position: " + which + " Value: " + feedersList[which] + " State: " + (isChecked ? "checked" : "unchecked"), Toast.LENGTH_LONG).show();
+                }
+            });
+
+            builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // delete selected feeder from the list
+                    for(int i=0; i<checkedItems.length; i++){
+                        if(checkedItems[i]){
+                            viewModel.removeFeeder(feedersList[i]);
+                        }
+                    }
+
+                    dialog.dismiss();
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            // ---------------------------
+
+
+        }
+
+
+
+        return super.onOptionsItemSelected(item);
     }
 
     //SQLITE DB access
