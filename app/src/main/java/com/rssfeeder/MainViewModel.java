@@ -20,9 +20,50 @@ import com.rssfeeder.VO.FeedVO;
 public class MainViewModel extends ViewModel implements RssListener{
 
     private MutableLiveData<List<FeedVO>> articleListLive = null;
-    private String urlString = "https://www.cnet.com/rss/news/";
+    private ArrayList<String> feeders = new ArrayList<>();
+
 
     private MutableLiveData<String> snackbar = new MutableLiveData<>();
+
+    public MainViewModel(){
+        super();
+        // Test feeders
+        addFeeder("https://www.androidauthority.com/feed");
+        addFeeder("https://www.cnet.com/rss/news/");
+    }
+
+
+    // add URL if not already exists
+    public void addFeeder(String url){
+        boolean exists = false;
+        for(String s : feeders){
+            if(s.equals(url)) {
+                exists = true;
+                break;
+            }
+        }
+
+        if(!exists) {
+            feeders.add(url);
+        }
+    }
+    // delete a feeder from the list
+    public void removeFeeder(String url){
+        int index = -1;
+        for(int i=0; i<feeders.size(); i++){
+            if(feeders.get(i).equals(url)){
+                index = i;
+                break;
+            }
+        }
+
+        //remove from the list
+        if(index>=0) feeders.remove(index);
+    }
+
+    public String[] getFeeders(){
+        return feeders.toArray(new String[feeders.size()]);
+    }
 
     public MutableLiveData<List<FeedVO>> getArticleList() {
         if (articleListLive == null) {
@@ -47,7 +88,7 @@ public class MainViewModel extends ViewModel implements RssListener{
 
         GetRssTask rssTask = new GetRssTask();
         rssTask.setListener(this);
-        rssTask.execute(urlString);
+        rssTask.execute(feeders.toArray(new String[feeders.size()])); // read feed on the background
 
 
     }

@@ -7,4 +7,17 @@
         android:orderInCategory="100"
         android:title="@string/action_about"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/add_feeder"
+        android:orderInCategory="100"
+        android:title="Add a Feeder"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/delete_feeder"
+        android:orderInCategory="100"
+        android:title="Delete Feeders"
+        app:showAsAction="never" />
+
 </menu>
