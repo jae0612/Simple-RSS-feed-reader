@@ -127,9 +127,6 @@ public class MainActivity extends AppCompatActivity {
             viewModel.fetchFeed();
         }
 
-        //DB access
-        writeArchieve();
-        readArchieve();
     }
 
     public boolean isNetworkAvailable() {
@@ -145,31 +142,57 @@ public class MainActivity extends AppCompatActivity {
     //SQLITE DB access
     //Jae
     //DB write
-    public void writeArchieve(){
+    public void writeArchieve(FeedVO vo){
         DbHandler dbHandler = new DbHandler(getApplicationContext());
         SQLiteDatabase db = dbHandler.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(FeedEntry.COLUMN_NAME_LINK,"test.test.com");
+        values.put(FeedEntry.COLUMN_NAME_TITLE, vo.getTitle());
+        values.put(FeedEntry.COLUMN_NAME_LINK, vo.getLink());
+        values.put(FeedEntry.COLUMN_NAME_DESCRIPTION, vo.getDescription());
+        values.put(FeedEntry.COLUMN_NAME_PUBLISH_DATE, vo.getPubDate());
+        values.put(FeedEntry.COLUMN_NAME_AUTHOR, vo.getAuthor());
+        values.put(FeedEntry.COLUMN_NAME_IMAGE_URL, vo.getImageUrl());
+
         long rowId = db.insert(FeedEntry.TABLE_NAME, null,values);
     }
 
     //DB read
-    public void readArchieve(){
+    public List<FeedVO> readArchieve(){
         DbHandler dbHandler = new DbHandler(getApplicationContext());
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         String order = FeedEntry.COLUMN_NAME_PUBLISH_DATE + " DESC";
         Cursor cursor = db.query(FeedEntry.TABLE_NAME,null,null,null,null,null,order,null);
         //Just link
-        List items = new ArrayList<>();
+        List<FeedVO> items = new ArrayList<>();
         while(cursor.moveToNext()) {
-            String item = cursor.getString(
+            String title = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_TITLE));
+            String description = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_DESCRIPTION));
+            String link = cursor.getString(
                     cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_LINK));
+            String author = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_AUTHOR));
+            String imageUrl = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_IMAGE_URL));
+
+            FeedVO item = new FeedVO();
+            item.setTitle(title);
+            item.setDescription(description);
+            item.setLink(link);
+            item.setAuthor(author);
+            item.setImageUrl(imageUrl);
+
             items.add(item);
         }
-
-        System.out.println(items.get(0));
-
-
+        return items;
+    }
+    //DB delete
+    public void delArchieve(String[] delItemsKeys){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        String selection = FeedEntry.COLUMN_NAME_LINK+ " LIKE ?";
+        int delRows = db.delete(FeedEntry.TABLE_NAME, selection, delItemsKeys);
     }
 
     //DB Close

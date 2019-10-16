@@ -12,7 +12,6 @@ public class DbHandler extends SQLiteOpenHelper {
             "CREATE TABLE " + FeedEntry.TABLE_NAME + " (" +
                     FeedEntry.COLUMN_NAME_TITLE + " TEXT," +
                     FeedEntry.COLUMN_NAME_LINK + " TEXT PRIMARY KEY," +
-                    FeedEntry.COLUMN_NAME_URI + " TEXT," +
                     FeedEntry.COLUMN_NAME_AUTHOR + " TEXT," +
                     FeedEntry.COLUMN_NAME_DESCRIPTION + " TEXT," +
                     FeedEntry.COLUMN_NAME_PUBLISH_DATE + " TEXT," +

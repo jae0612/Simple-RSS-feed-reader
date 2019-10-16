@@ -11,7 +11,6 @@ public class FeedVO {
 
     String title;
     String link;
-    String uri;
     String author;
     String description;
     String pubDate;
@@ -36,14 +35,6 @@ public class FeedVO {
 
     public void setLink(String link) {
         this.link = link;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
     }
 
     public String getAuthor() {

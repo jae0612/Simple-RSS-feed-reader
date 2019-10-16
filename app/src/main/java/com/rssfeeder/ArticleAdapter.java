@@ -109,15 +109,15 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 articleView.getSettings().setLoadWithOverviewMode(true);
 
                 String title = articles.get(viewHolder.getAdapterPosition()).getTitle();
-                //String content = articles.get(viewHolder.getAdapterPosition()).getContent();
-                String content = "content";
+                String content = articles.get(viewHolder.getAdapterPosition()).getDescription();
+                String image = articles.get(viewHolder.getAdapterPosition()).getImageUrl();
+                //String content = "content";
 
                 articleView.getSettings().setJavaScriptEnabled(true);
                 articleView.setHorizontalScrollBarEnabled(false);
                 articleView.setWebChromeClient(new WebChromeClient());
-                articleView.loadDataWithBaseURL(null, "<style>img{display: inline; height: auto; max-width: 100%;} " +
-
-                        "</style>\n" + "<style>iframe{ height: auto; width: auto;}" + "</style>\n" + content, null, "utf-8", null);
+                articleView.loadDataWithBaseURL(null, "<style>img{display: block; height: auto; max-width: 100%; margin: 0 auto; padding: 0} "
+                        + "</style>\n" + "<img src ='"+ image +"' /><br>" + "<style>iframe{ height: auto; width: auto;}" + "</style>\n <h4>" + content + "</h4>", null, "utf-8", null);
 
                 androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(mContext).create();
                 alertDialog.setTitle(title);
