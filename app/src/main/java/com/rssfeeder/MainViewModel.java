@@ -23,14 +23,12 @@ public class MainViewModel extends ViewModel implements RssListener{
     private ArrayList<String> feeders = new ArrayList<>();
     private MutableLiveData<String> snackbar = new MutableLiveData<>();
 
-
     public MainViewModel(){
         super();
         // Test feeders
         addFeeder("https://www.androidauthority.com/feed");
         addFeeder("https://www.cnet.com/rss/news/");
     }
-
 
     // add URL if not already exists
     public void addFeeder(String url){
@@ -75,6 +73,7 @@ public class MainViewModel extends ViewModel implements RssListener{
     private void setArticleList(List<FeedVO> articleList) {
         this.articleListLive.postValue(articleList);
     }
+
 
     public LiveData<String> getSnackbar() {
         return snackbar;

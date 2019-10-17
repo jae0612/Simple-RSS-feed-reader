@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,12 +21,14 @@ import com.squareup.picasso.Picasso;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.zip.DataFormatException;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -58,7 +61,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder viewHolder, int position) {
 
-        FeedVO currentArticle = articles.get(position);
+        final FeedVO currentArticle = articles.get(position);
 
         // publish date
         String pubDateString = currentArticle.getPubDate();
@@ -79,6 +82,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
         // show title
         viewHolder.title.setText(currentArticle.getTitle());
+
 
         // show thumbnail
         Picasso.get()
@@ -138,12 +142,27 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
             }
         });
+
+
+        // Check favorite
+        viewHolder.favorite.setChecked(currentArticle.isFavorite());
+        viewHolder.favorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // update your model (or other business logic) based on isChecked
+                articleView = new WebView(mContext);
+                articleView.getSettings().setLoadWithOverviewMode(true);
+                FeedVO fvo = articles.get(viewHolder.getAdapterPosition());
+                fvo.setFavorite(isChecked);
+            }
+        });
+
     }
 
     @Override
     public int getItemCount() {
         return articles == null ? 0 : articles.size();
     }
+
 
     class ViewHolder extends RecyclerView.ViewHolder {
         TextView title;

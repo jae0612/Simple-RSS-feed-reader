@@ -43,6 +43,8 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
                     feedObj.setAuthor(entry.getAuthor());
                     feedObj.setDescription(entry.getDescription().getValue());
                     feedObj.setPubDate(entry.getPublishedDate().toString());
+                    feedObj.setLink(entry.getLink()); //key
+
 
                     //parse image url
                     MediaEntryModule module = (MediaEntryModule) entry.getModule(MediaModule.URI);

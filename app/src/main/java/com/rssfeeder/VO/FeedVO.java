@@ -21,7 +21,6 @@ public class FeedVO {
     boolean favorite = false;
 
 
-
     public boolean isFavorite() {
         return favorite;
     }
@@ -103,7 +102,11 @@ public class FeedVO {
     }
 
     public boolean equals(FeedVO fvo){
-        return (this.title.equals(fvo.title));
+        if(this.link == null || fvo.link == null){
+            // compare titles if no link exists
+            return (this.title.equals(fvo.title));
+        }
+        return (this.link.equals(fvo.link));
     }
 
 

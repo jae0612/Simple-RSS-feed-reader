@@ -10,6 +10,7 @@ public class RssFeedContract {
     /* Inner class that defines the table contents */
     public static class FeedEntry implements BaseColumns {
         public static final String TABLE_NAME = "archive";
+        public static final String TABLE_NAME_FAVORITE = "archive_favorite";
         public static final String COLUMN_NAME_TITLE = "title";
         public static final String COLUMN_NAME_LINK = "link";
         public static final String COLUMN_NAME_URI = "uri";
@@ -20,6 +21,5 @@ public class RssFeedContract {
         public static final String COLUMN_NAME_IMAGE_TITLE = "imageTitle";
         public static final String COLUMN_NAME_IMAGE_LINK = "imageLink";
         public static final String COLUMN_NAME_IMAGE_DESCRIPTION = "imageDescription";
-        public static final String COLUMN_NAME_FAVORITE = "favorite";
     }
 }

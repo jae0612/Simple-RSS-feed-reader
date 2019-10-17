@@ -8,6 +8,7 @@ import com.rssfeeder.RssFeedContract.FeedEntry;
 //Jae
 public class DbHandler extends SQLiteOpenHelper {
 
+    // Articles DB
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + FeedEntry.TABLE_NAME + " (" +
                     FeedEntry.COLUMN_NAME_TITLE + " TEXT," +
@@ -20,17 +21,30 @@ public class DbHandler extends SQLiteOpenHelper {
                     FeedEntry.COLUMN_NAME_IMAGE_LINK + " TEXT," +
                     FeedEntry.COLUMN_NAME_IMAGE_DESCRIPTION + " TEXT)";
 
+    // Favorites DB
+    private static final String SQL_CREATE_ENTRIES_FAVORITE =
+            "CREATE TABLE " + FeedEntry.TABLE_NAME_FAVORITE + " (" +
+                    FeedEntry.COLUMN_NAME_TITLE + " TEXT," +
+                    FeedEntry.COLUMN_NAME_LINK + " TEXT PRIMARY KEY," +
+                    FeedEntry.COLUMN_NAME_AUTHOR + " TEXT," +
+                    FeedEntry.COLUMN_NAME_DESCRIPTION + " TEXT," +
+                    FeedEntry.COLUMN_NAME_PUBLISH_DATE + " TEXT," +
+                    FeedEntry.COLUMN_NAME_IMAGE_URL + " TEXT," +
+                    FeedEntry.COLUMN_NAME_IMAGE_TITLE + " TEXT," +
+                    FeedEntry.COLUMN_NAME_IMAGE_LINK + " TEXT," +
+                    FeedEntry.COLUMN_NAME_IMAGE_DESCRIPTION + " TEXT)";
+
     public DbHandler(Context context){
-        super(context ,"Rss.db", null, 1);
+        super(context ,"Rss2.db", null, 1);
     }
     @Override
     public void onCreate(SQLiteDatabase db){
         db.execSQL(SQL_CREATE_ENTRIES);
+        db.execSQL(SQL_CREATE_ENTRIES_FAVORITE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
-
     }
 
 }
