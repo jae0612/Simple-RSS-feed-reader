@@ -24,6 +24,7 @@ import org.jdom2.Element;
 import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,7 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
 
     RssListener listener;
     List<FeedVO> feedList = new ArrayList<>();
+
     @Override
     protected Void doInBackground(String[] urls) {
 
@@ -48,19 +50,24 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
                     feedObj.setTitle(entry.getTitle());
                     feedObj.setAuthor(entry.getAuthor());
                     feedObj.setDescription(entry.getDescription().getValue());
-                    feedObj.setPubDate(LocalDateTime.from(Instant.ofEpochMilli(entry.getPublishedDate().getTime())));
+                    feedObj.setPubDate(entry.getPublishedDate().toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDateTime());
                     List<String> categories = new ArrayList<>();
                     for (SyndCategory category : entry.getCategories()) {
                         categories.add(category.getName());
                     }
                     feedObj.setCategories(categories);
+                    feedObj.setLink(entry.getLink()); //key
+
 
                     //parse image url
-                    MediaEntryModule module = (MediaEntryModule) entry.getModule( MediaEntryModule.URI);
-                    System.out.println(module);
+                    MediaEntryModule module = (MediaEntryModule) entry.getModule(MediaModule.URI);
                     Thumbnail[] thumbnails = null;
+                    MediaContent[] contents = null;
                     if(module != null) {
                         thumbnails = module.getMetadata().getThumbnail();
+                        contents = module.getMediaContents();
                     }
                     if(thumbnails != null && thumbnails.length > 0)
                         feedObj.setImageUrl(thumbnails[0].getUrl().toString());
@@ -90,11 +97,10 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
         this.listener = listener;
     }
 
+    // After finishing read, push the feed list to the MainViewModel
     @Override
     protected void onPostExecute(Void result){
         listener.onFeedReceived(feedList);
     }
 
-
-
-    }
+}

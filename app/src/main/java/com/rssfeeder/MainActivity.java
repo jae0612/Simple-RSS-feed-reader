@@ -25,9 +25,11 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,7 +54,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Jihwan
+    // layouts
     private RecyclerView mRecyclerView;
     private ArticleAdapter mAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private MainViewModel viewModel;
     private RelativeLayout relativeLayout;
 
-
+    private boolean favoriteMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +70,9 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        // The view model reads & shows feed articles
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.feeders = readFeederDB();
 
         progressBar = findViewById(R.id.progressBar);
 
@@ -79,18 +83,57 @@ public class MainActivity extends AppCompatActivity {
 
         relativeLayout = findViewById(R.id.root_layout);
 
+        // whenever viewModel updates articles, create new article adapter
         viewModel.getArticleList().observe(this, new Observer<List<FeedVO>>() {
             @Override
             public void onChanged(List<FeedVO> articles) {
+                /** Change the ViewModel MutableList --> ArticleAdaptor **/
                 if (articles != null) {
-                    mAdapter = new ArticleAdapter(articles, MainActivity.this);
+                    saveFavoritePages();
+                    // check if new articles received, and update the DB
+                    List<FeedVO> list = readArchieve();
+                    List<FeedVO> list_favorite = readFavoriteArchieve();
+                    boolean isNew;
+                    for(FeedVO fvo : articles){
+                        isNew = true;
+                        // check if new article read
+                        for(FeedVO comp : list){
+                            if(fvo.equals(comp)){
+                                // this  article is already in the DB
+                                isNew=false;
+                                break;
+                            }
+                        }
+                        if(isNew){
+                            // save the new article in the DB
+                            writeArchieve(fvo);
+                            list.add(fvo);
+                        }
+                    }
+
+                    for(FeedVO fvo : list){
+                        // check if favorite
+                        for(FeedVO comp : list_favorite){
+                            if(fvo.equals(comp)){
+                                fvo.setFavorite(true);
+                            }
+                        }
+                    }
+
+                    // Only show articles from the favorite DB
+                    if(favoriteMode) list = readFavoriteArchieve();
+
+                    // create article adapter
+                    mAdapter = new ArticleAdapter(list, MainActivity.this);
                     mRecyclerView.setAdapter(mAdapter);
                     mAdapter.notifyDataSetChanged();
                     progressBar.setVisibility(View.GONE);
                     mSwipeRefreshLayout.setRefreshing(false);
+
                 }
             }
         });
+
 
         viewModel.getSnackbar().observe(this, new Observer<String>() {
             @Override
@@ -106,13 +149,15 @@ public class MainActivity extends AppCompatActivity {
         mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary, R.color.colorPrimaryDark);
         mSwipeRefreshLayout.canChildScrollUp();
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-
             @Override
             public void onRefresh() {
-                mAdapter.getArticleList().clear();
+                /** Refresh: Clear the current list --> Refetch **/
+                saveFavoritePages();
+
+                mAdapter.getArticleList().clear(); // clear the previous articles list when refreshed
                 mAdapter.notifyDataSetChanged();
                 mSwipeRefreshLayout.setRefreshing(true);
-                viewModel.fetchFeed(); //read feed when refresh
+                viewModel.fetchFeed(); //read articles
             }
         });
 
@@ -135,11 +180,49 @@ public class MainActivity extends AppCompatActivity {
             alert.show();
 
         } else if (isNetworkAvailable()) {
+            // first read feed
             viewModel.fetchFeed();
         }
 
     }
 
+    public void saveFavoritePages(){
+        // Save favorite
+        if(mAdapter==null || mAdapter.getArticleList() == null) return;
+
+        // read articles from DB
+        List<FeedVO> favoriteList = readFavoriteArchieve();
+
+        // check if new articles received, and add to the DB
+        boolean add;
+        for (FeedVO fvo : mAdapter.getArticleList()) {
+
+            add = fvo.isFavorite();
+
+            // match article with one in the favorite DB
+            for (FeedVO comp : favoriteList) {
+                if (fvo.equals(comp)) {
+                    // this article is in the favorite DB
+                    if(!fvo.isFavorite()){
+                        // Remove from the DB
+                        System.out.println("Delete: " + comp.getLink());
+                        delFavoriteArchieve(comp);
+                    }
+                    // no need to add
+                    add=false;
+                    break;
+                }
+            }
+
+            if (add) {
+                // Save the new article in the DB
+                writeFavoriteArchieve(fvo);
+                favoriteList.add(fvo);
+            }
+        }
+    }
+
+    // Check the network
     public boolean isNetworkAvailable() {
         /*
         ConnectivityManager connectivityManager
@@ -181,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
 
             ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
         }else if (id == R.id.add_feeder) {
+            favoriteMode = false;
             // 'Add a Feeder' clicked
             androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
             alertDialog.setTitle("Add a Feeder");
@@ -198,13 +282,22 @@ public class MainActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             String url = input.getText().toString();
                             viewModel.addFeeder(url);
+
+                            /**
+                             * Validity Check Code
+                             */
+
+                            // write to DB
+                            writeFeederDB(url);
+
                             dialog.dismiss();
                         }
                     });
-            alertDialog.show();
 
+            alertDialog.show();
             ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
         }else if (id == R.id.delete_feeder) {
+            favoriteMode = false;
             // 'Delete Feeders' clicked
 
             final String[] feedersList = viewModel.getFeeders();
@@ -227,6 +320,8 @@ public class MainActivity extends AppCompatActivity {
                     for(int i=0; i<checkedItems.length; i++){
                         if(checkedItems[i]){
                             viewModel.removeFeeder(feedersList[i]);
+                            // Remove from the DB
+                            delFeederDB(feedersList[i]);
                         }
                     }
 
@@ -237,14 +332,26 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog dialog = builder.create();
             dialog.show();
             // ---------------------------
+        }else if (id == R.id.show_favorite) {
+            saveFavoritePages();
+            favoriteMode = true;
+            mAdapter.getArticleList().clear(); // clear the previous articles list when refreshed
+            mAdapter.notifyDataSetChanged();
+            mSwipeRefreshLayout.setRefreshing(true);
+            viewModel.fetchFeed(); //read articles
 
-
+        }else if (id == R.id.show_home) {
+            saveFavoritePages();
+            favoriteMode = false;
+            mAdapter.getArticleList().clear(); // clear the previous articles list when refreshed
+            mAdapter.notifyDataSetChanged();
+            mSwipeRefreshLayout.setRefreshing(true);
+            viewModel.fetchFeed(); //read articles
         }
-
-
 
         return super.onOptionsItemSelected(item);
     }
+
 
     //SQLITE DB access
     //Jae
@@ -261,12 +368,19 @@ public class MainActivity extends AppCompatActivity {
         values.put(FeedEntry.COLUMN_NAME_IMAGE_URL, vo.getImageUrl());
 
         long rowId = db.insert(FeedEntry.TABLE_NAME, null,values);
+
+
     }
 
     //DB read
     public List<FeedVO> readArchieve(){
         DbHandler dbHandler = new DbHandler(getApplicationContext());
         SQLiteDatabase db = dbHandler.getReadableDatabase();
+
+        // Reset DB
+        //db.execSQL("delete from "+ FeedEntry.TABLE_NAME);
+        //db.execSQL("delete from "+ FeedEntry.TABLE_NAME_FAVORITE);
+
         String order = FeedEntry.COLUMN_NAME_PUBLISH_DATE + " DESC";
         Cursor cursor = db.query(FeedEntry.TABLE_NAME,null,null,null,null,null,order,null);
         //Just link
@@ -285,6 +399,7 @@ public class MainActivity extends AppCompatActivity {
             String pubDate = cursor.getString(
                     cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_PUBLISH_DATE));
 
+            // Restore a FeedVO object
             FeedVO item = new FeedVO();
             item.setTitle(title);
             item.setDescription(description);
@@ -304,6 +419,110 @@ public class MainActivity extends AppCompatActivity {
         String selection = FeedEntry.COLUMN_NAME_LINK+ " LIKE ?";
         int delRows = db.delete(FeedEntry.TABLE_NAME, selection, delItemsKeys);
     }
+
+
+    /** DB for Favorite Articles **/
+    public void writeFavoriteArchieve(FeedVO vo){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(FeedEntry.COLUMN_NAME_TITLE, vo.getTitle());
+        values.put(FeedEntry.COLUMN_NAME_LINK, vo.getLink());
+        values.put(FeedEntry.COLUMN_NAME_DESCRIPTION, vo.getDescription());
+        values.put(FeedEntry.COLUMN_NAME_PUBLISH_DATE, vo.getPubDate().toString());
+        values.put(FeedEntry.COLUMN_NAME_AUTHOR, vo.getAuthor());
+        values.put(FeedEntry.COLUMN_NAME_IMAGE_URL, vo.getImageUrl());
+
+        long rowId = db.insert(FeedEntry.TABLE_NAME_FAVORITE, null,values);
+    }
+
+    //DB read
+    public List<FeedVO> readFavoriteArchieve(){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+
+        String order = FeedEntry.COLUMN_NAME_PUBLISH_DATE + " DESC";
+        Cursor cursor = db.query(FeedEntry.TABLE_NAME_FAVORITE,null,null,null,null,null,order,null);
+        //Just link
+        List<FeedVO> items = new ArrayList<>();
+        while(cursor.moveToNext()) {
+            String title = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_TITLE));
+            String description = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_DESCRIPTION));
+            String link = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_LINK));
+            String author = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_AUTHOR));
+            String imageUrl = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_IMAGE_URL));
+            String pubDate = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_PUBLISH_DATE));
+
+            // Restore a FeedVO object
+            FeedVO item = new FeedVO();
+            item.setTitle(title);
+            item.setDescription(description);
+            item.setLink(link);
+            item.setAuthor(author);
+            item.setImageUrl(imageUrl);
+            item.setPubDate(LocalDateTime.parse(pubDate));
+            item.setFavorite(true);
+            items.add(item);
+        }
+        return items;
+    }
+    //DB delete
+    public void delFavoriteArchieve(FeedVO fvo){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        String selection = FeedEntry.COLUMN_NAME_LINK+ " LIKE ?";
+        int delRows = db.delete(FeedEntry.TABLE_NAME_FAVORITE, selection, new String[]{fvo.getLink()});
+    }
+    //DB delete
+    public void delFavoriteArchieve(String[] delItemsKeys){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        String selection = FeedEntry.COLUMN_NAME_LINK+ " LIKE ?";
+        int delRows = db.delete(FeedEntry.TABLE_NAME_FAVORITE, selection, delItemsKeys);
+    }
+
+
+    /** DB for Feed URLs **/
+    public void writeFeederDB(String url){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(FeedEntry.COLUMN_NAME_LINK, url);
+        long rowId = db.insert(FeedEntry.TABLE_NAME_FEEDER, null,values);
+    }
+
+    //DB read
+    public ArrayList<String> readFeederDB(){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+
+        String order = FeedEntry.COLUMN_NAME_LINK + " DESC";
+        Cursor cursor = db.query(FeedEntry.TABLE_NAME_FEEDER,null,null,null,null,null,order,null);
+
+        ArrayList<String> urls = new ArrayList<>();
+        while(cursor.moveToNext()) {
+            String link = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_LINK));
+            // Restore a FeedVO object
+            urls.add(link);
+        }
+
+        return urls;
+    }
+    //DB delete
+    public void delFeederDB(String url){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        String selection = FeedEntry.COLUMN_NAME_LINK+ " LIKE ?";
+        int delRows = db.delete(FeedEntry.TABLE_NAME_FEEDER, selection, new String[]{url});
+    }
+
 
     //DB Close
     @Override

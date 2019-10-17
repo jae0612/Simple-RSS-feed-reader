@@ -10,14 +10,26 @@
 
     <item
         android:id="@+id/add_feeder"
-        android:orderInCategory="100"
+        android:orderInCategory="2"
         android:title="Add a Feeder"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/delete_feeder"
-        android:orderInCategory="100"
+        android:orderInCategory="3"
         android:title="Delete Feeders"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/show_home"
+        android:orderInCategory="1"
+        android:title="Home"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/show_favorite"
+        android:orderInCategory="4"
+        android:title="Favorites"
         app:showAsAction="never" />
 
 </menu>
