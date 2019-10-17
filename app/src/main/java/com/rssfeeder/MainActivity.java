@@ -48,7 +48,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Jihwan
+    // layouts
     private RecyclerView mRecyclerView;
     private ArticleAdapter mAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        // The view model reads & shows feed articles
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
 
         progressBar = findViewById(R.id.progressBar);
@@ -75,11 +76,35 @@ public class MainActivity extends AppCompatActivity {
 
         relativeLayout = findViewById(R.id.root_layout);
 
+        // whenever viewModel updates articles, create new article adapter
         viewModel.getArticleList().observe(this, new Observer<List<FeedVO>>() {
             @Override
             public void onChanged(List<FeedVO> articles) {
                 if (articles != null) {
-                    mAdapter = new ArticleAdapter(articles, MainActivity.this);
+                    // check if new articles received, and add to the DB
+                    // read articles from DB
+                    List<FeedVO> list = readArchieve();
+                    boolean isNew=true;
+                    for(FeedVO fvo : articles){
+                        // check if new article read
+                        for(FeedVO comp : list){
+                            if(fvo.equals(comp)){
+                                // this  article is already in the DB
+                                isNew=false;
+                                break;
+                            }
+                        }
+
+                        if(isNew){
+                            // save the new article in the DB
+                            writeArchieve(fvo);
+                            list.add(fvo);
+                        }
+                    }
+
+
+                    // create article adapter
+                    mAdapter = new ArticleAdapter(list, MainActivity.this);
                     mRecyclerView.setAdapter(mAdapter);
                     mAdapter.notifyDataSetChanged();
                     progressBar.setVisibility(View.GONE);
@@ -105,10 +130,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onRefresh() {
-                mAdapter.getArticleList().clear();
+                mAdapter.getArticleList().clear(); // clear the previous articles list when refreshed
                 mAdapter.notifyDataSetChanged();
                 mSwipeRefreshLayout.setRefreshing(true);
-                viewModel.fetchFeed(); //read feed when refresh
+                viewModel.fetchFeed(); //read articles
             }
         });
 
@@ -131,11 +156,13 @@ public class MainActivity extends AppCompatActivity {
             alert.show();
 
         } else if (isNetworkAvailable()) {
+            // first read feed
             viewModel.fetchFeed();
         }
 
     }
 
+    // Check the network
     public boolean isNetworkAvailable() {
         /*
         ConnectivityManager connectivityManager
@@ -233,14 +260,45 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog dialog = builder.create();
             dialog.show();
             // ---------------------------
+        }else if (id == R.id.show_favorite) {
+            // 'Favorite' clicked
+            final String[] feedersList = viewModel.getFeeders();
 
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Select feeders to delete");
 
+            final boolean[] checkedItems = new boolean[feedersList.length]; //this will checked the items when user open the dialog
+            builder.setMultiChoiceItems(feedersList, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                    //Toast.makeText(this, "Position: " + which + " Value: " + feedersList[which] + " State: " + (isChecked ? "checked" : "unchecked"), Toast.LENGTH_LONG).show();
+                }
+            });
+
+            builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // delete selected feeder from the list
+                    for(int i=0; i<checkedItems.length; i++){
+                        if(checkedItems[i]){
+                            viewModel.removeFeeder(feedersList[i]);
+                        }
+                    }
+
+                    dialog.dismiss();
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            // ---------------------------
         }
 
 
 
         return super.onOptionsItemSelected(item);
     }
+
 
     //SQLITE DB access
     //Jae
@@ -255,6 +313,7 @@ public class MainActivity extends AppCompatActivity {
         values.put(FeedEntry.COLUMN_NAME_PUBLISH_DATE, vo.getPubDate());
         values.put(FeedEntry.COLUMN_NAME_AUTHOR, vo.getAuthor());
         values.put(FeedEntry.COLUMN_NAME_IMAGE_URL, vo.getImageUrl());
+        values.put(FeedEntry.COLUMN_NAME_FAVORITE, vo.isFavorite());
 
         long rowId = db.insert(FeedEntry.TABLE_NAME, null,values);
     }
@@ -263,6 +322,10 @@ public class MainActivity extends AppCompatActivity {
     public List<FeedVO> readArchieve(){
         DbHandler dbHandler = new DbHandler(getApplicationContext());
         SQLiteDatabase db = dbHandler.getReadableDatabase();
+
+        // Reset DB
+        //db.execSQL("delete from "+ FeedEntry.TABLE_NAME);
+
         String order = FeedEntry.COLUMN_NAME_PUBLISH_DATE + " DESC";
         Cursor cursor = db.query(FeedEntry.TABLE_NAME,null,null,null,null,null,order,null);
         //Just link
@@ -278,13 +341,17 @@ public class MainActivity extends AppCompatActivity {
                     cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_AUTHOR));
             String imageUrl = cursor.getString(
                     cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_IMAGE_URL));
+            boolean favorite = Boolean.parseBoolean(cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_FAVORITE)));
 
+            // Restore a FeedVO object
             FeedVO item = new FeedVO();
             item.setTitle(title);
             item.setDescription(description);
             item.setLink(link);
             item.setAuthor(author);
             item.setImageUrl(imageUrl);
+            item.setFavorite(favorite);
 
             items.add(item);
         }

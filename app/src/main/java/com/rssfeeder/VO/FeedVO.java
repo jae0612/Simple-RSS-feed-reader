@@ -18,8 +18,17 @@ public class FeedVO {
     String imageTitle;
     String imageLink;
     String imageDescription;
+    boolean favorite = false;
 
 
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
 
     public String getTitle() {
         return title;
@@ -91,6 +100,10 @@ public class FeedVO {
 
     public void setImageDescription(String imageDescription) {
         this.imageDescription = imageDescription;
+    }
+
+    public boolean equals(FeedVO fvo){
+        return (this.title.equals(fvo.title));
     }
 
 

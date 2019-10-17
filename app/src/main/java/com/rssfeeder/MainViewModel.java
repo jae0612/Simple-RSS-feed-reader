@@ -21,9 +21,8 @@ public class MainViewModel extends ViewModel implements RssListener{
 
     private MutableLiveData<List<FeedVO>> articleListLive = null;
     private ArrayList<String> feeders = new ArrayList<>();
-
-
     private MutableLiveData<String> snackbar = new MutableLiveData<>();
+
 
     public MainViewModel(){
         super();
@@ -42,11 +41,10 @@ public class MainViewModel extends ViewModel implements RssListener{
                 break;
             }
         }
-
-        if(!exists) {
-            feeders.add(url);
-        }
+        if(!exists) feeders.add(url);
     }
+
+
     // delete a feeder from the list
     public void removeFeeder(String url){
         int index = -1;
@@ -56,7 +54,6 @@ public class MainViewModel extends ViewModel implements RssListener{
                 break;
             }
         }
-
         //remove from the list
         if(index>=0) feeders.remove(index);
     }
@@ -65,6 +62,7 @@ public class MainViewModel extends ViewModel implements RssListener{
         return feeders.toArray(new String[feeders.size()]);
     }
 
+
     public MutableLiveData<List<FeedVO>> getArticleList() {
         if (articleListLive == null) {
             articleListLive = new MutableLiveData<>();
@@ -72,6 +70,8 @@ public class MainViewModel extends ViewModel implements RssListener{
         return articleListLive;
     }
 
+    // called when GetRssTask finishes reading from background
+    // when the list updated, a new ArticleAdapter object is created
     private void setArticleList(List<FeedVO> articleList) {
         this.articleListLive.postValue(articleList);
     }
@@ -84,18 +84,17 @@ public class MainViewModel extends ViewModel implements RssListener{
         snackbar.setValue(null);
     }
 
+    // read feed on the background
     public void fetchFeed() {
-
         GetRssTask rssTask = new GetRssTask();
         rssTask.setListener(this);
-        rssTask.execute(feeders.toArray(new String[feeders.size()])); // read feed on the background
-
-
+        rssTask.execute(feeders.toArray(new String[feeders.size()])); // read all feeders
     }
 
-    //callback function from GetRssTask
+    //callback GetRssTask -> MainViewModel -> ArticleAdapter
     @Override
     public void onFeedReceived(List<FeedVO> feedList) {
+        // called back after GetRSSTask finishes reading from background
         setArticleList(feedList);
         System.out.println("call back called");
     }

@@ -20,5 +20,6 @@ public class RssFeedContract {
         public static final String COLUMN_NAME_IMAGE_TITLE = "imageTitle";
         public static final String COLUMN_NAME_IMAGE_LINK = "imageLink";
         public static final String COLUMN_NAME_IMAGE_DESCRIPTION = "imageDescription";
+        public static final String COLUMN_NAME_FAVORITE = "favorite";
     }
 }

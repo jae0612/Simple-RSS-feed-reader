@@ -26,6 +26,7 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
 
     RssListener listener;
     List<FeedVO> feedList = new ArrayList<>();
+
     @Override
     protected Void doInBackground(String[] urls) {
 
@@ -72,11 +73,10 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
         this.listener = listener;
     }
 
+    // After finishing read, push the feed list to the MainViewModel
     @Override
     protected void onPostExecute(Void result){
         listener.onFeedReceived(feedList);
     }
 
-
-
-    }
+}

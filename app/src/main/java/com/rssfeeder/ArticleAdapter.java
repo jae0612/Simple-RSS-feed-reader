@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -31,15 +32,17 @@ import androidx.recyclerview.widget.RecyclerView;
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
 
     private List<FeedVO> articles;
-
     private Context mContext;
-    private WebView articleView;
+    private WebView articleView; // to show an article inside a dialog
 
+    // new object created whenever the articles list updated
+    //callback GetRssTask -> MainViewModel -> ArticleAdapter
     public ArticleAdapter(List<FeedVO> list, Context context) {
         this.articles = list;
         this.mContext = context;
     }
 
+    // to clear the article list when refreshed
     public List<FeedVO> getArticleList() {
         return articles;
     }
@@ -51,19 +54,20 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         return new ViewHolder(v);
     }
 
+    // manages a view for articles
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder viewHolder, int position) {
 
         FeedVO currentArticle = articles.get(position);
 
+        // publish date
         String pubDateString = currentArticle.getPubDate();
+        //Edit to change date time format
         /*
         try {
             String sourceDateString = currentArticle.getPubDate();
-
             SimpleDateFormat sourceSdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
             Date date = sourceSdf.parse(sourceDateString);
-
             SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM yyyy", Locale.getDefault());
             pubDateString = sdf.format(date);
 
@@ -73,19 +77,20 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         }
         */
 
+        // show title
         viewHolder.title.setText(currentArticle.getTitle());
 
-
+        // show thumbnail
         Picasso.get()
                 .load(currentArticle.getImageUrl())
                 //.placeholder(R.drawable.placeholder)
                 .into(viewHolder.image);
 
 
-
+        // show publish date
         viewHolder.pubDate.setText(pubDateString);
 
-        /*
+        /* Edit to add categories
         StringBuilder categories = new StringBuilder();
         for (int i = 0; i < currentArticle.getCategories().size(); i++) {
             if (i == currentArticle.getCategories().size() - 1) {
@@ -94,9 +99,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 categories.append(currentArticle.getCategories().get(i)).append(", ");
             }
         }
-        */
         viewHolder.category.setText("categories");
+        */
 
+        // popup the article when clicked
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
 
             @SuppressLint("SetJavaScriptEnabled")
@@ -111,7 +117,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 String title = articles.get(viewHolder.getAdapterPosition()).getTitle();
                 String content = articles.get(viewHolder.getAdapterPosition()).getDescription();
                 String image = articles.get(viewHolder.getAdapterPosition()).getImageUrl();
-                //String content = "content";
 
                 articleView.getSettings().setJavaScriptEnabled(true);
                 articleView.setHorizontalScrollBarEnabled(false);
@@ -144,7 +149,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         TextView title;
         TextView pubDate;
         ImageView image;
-        TextView category;
+        CheckBox favorite;
 
         public ViewHolder(View itemView) {
 
@@ -152,7 +157,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             title = itemView.findViewById(R.id.title);
             pubDate = itemView.findViewById(R.id.pubDate);
             image = itemView.findViewById(R.id.image);
-            category = itemView.findViewById(R.id.categories);
+            favorite = itemView.findViewById(R.id.favorite);
         }
     }
 }
