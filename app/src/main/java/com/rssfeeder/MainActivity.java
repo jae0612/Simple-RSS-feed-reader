@@ -42,6 +42,10 @@ import com.rssfeeder.VO.FeedVO;
 import com.rssfeeder.RssFeedContract.FeedEntry;
 
 import java.net.URL;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -252,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
         values.put(FeedEntry.COLUMN_NAME_TITLE, vo.getTitle());
         values.put(FeedEntry.COLUMN_NAME_LINK, vo.getLink());
         values.put(FeedEntry.COLUMN_NAME_DESCRIPTION, vo.getDescription());
-        values.put(FeedEntry.COLUMN_NAME_PUBLISH_DATE, vo.getPubDate());
+        values.put(FeedEntry.COLUMN_NAME_PUBLISH_DATE, vo.getPubDate().toString());
         values.put(FeedEntry.COLUMN_NAME_AUTHOR, vo.getAuthor());
         values.put(FeedEntry.COLUMN_NAME_IMAGE_URL, vo.getImageUrl());
 
@@ -278,6 +282,8 @@ public class MainActivity extends AppCompatActivity {
                     cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_AUTHOR));
             String imageUrl = cursor.getString(
                     cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_IMAGE_URL));
+            String pubDate = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_PUBLISH_DATE));
 
             FeedVO item = new FeedVO();
             item.setTitle(title);
@@ -285,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
             item.setLink(link);
             item.setAuthor(author);
             item.setImageUrl(imageUrl);
+            item.setPubDate(LocalDateTime.parse(pubDate));
 
             items.add(item);
         }

@@ -3,7 +3,9 @@ package com.rssfeeder;
 import android.os.AsyncTask;
 import android.os.StrictMode;
 
+import com.rometools.modules.mediarss.types.UrlReference;
 import com.rometools.rome.feed.rss.Content;
+import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
@@ -17,8 +19,13 @@ import com.rometools.modules.mediarss.types.Rating;
 import com.rometools.modules.mediarss.types.Thumbnail;
 import com.rssfeeder.VO.FeedVO;
 
+import org.jdom2.Element;
+
 import java.net.URL;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 //Jae
@@ -41,20 +48,31 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
                     feedObj.setTitle(entry.getTitle());
                     feedObj.setAuthor(entry.getAuthor());
                     feedObj.setDescription(entry.getDescription().getValue());
-                    feedObj.setPubDate(entry.getPublishedDate().toString());
+                    feedObj.setPubDate(LocalDateTime.from(Instant.ofEpochMilli(entry.getPublishedDate().getTime())));
+                    List<String> categories = new ArrayList<>();
+                    for (SyndCategory category : entry.getCategories()) {
+                        categories.add(category.getName());
+                    }
+                    feedObj.setCategories(categories);
 
                     //parse image url
-                    MediaEntryModule module = (MediaEntryModule) entry.getModule(MediaModule.URI);
+                    MediaEntryModule module = (MediaEntryModule) entry.getModule( MediaEntryModule.URI);
+                    System.out.println(module);
                     Thumbnail[] thumbnails = null;
-                    MediaContent[] contents = null;
                     if(module != null) {
                         thumbnails = module.getMetadata().getThumbnail();
-                        contents = module.getMediaContents();
                     }
                     if(thumbnails != null && thumbnails.length > 0)
                         feedObj.setImageUrl(thumbnails[0].getUrl().toString());
-                    else if(contents != null && contents.length > 0)
-                        feedObj.setImageUrl(contents[0].getReference().toString());
+                    else {
+                        for (Element foreignMarkup : entry.getForeignMarkup()) {
+                            if (foreignMarkup.getNamespaceURI().equals("https://search.yahoo.com/mrss/")) {
+                                if (foreignMarkup.getName().equals("content")) {
+                                    feedObj.setImageUrl(foreignMarkup.getAttributeValue("url"));
+                                }
+                            }
+                        }
+                    }
 
                     feedList.add(feedObj);
                 }

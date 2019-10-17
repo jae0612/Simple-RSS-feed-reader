@@ -29,7 +29,7 @@ public class MainViewModel extends ViewModel implements RssListener{
         super();
         // Test feeders
         addFeeder("https://www.androidauthority.com/feed");
-        addFeeder("https://www.cnet.com/rss/news/");
+
     }
 
 

@@ -12,7 +12,6 @@ public class RssFeedContract {
         public static final String TABLE_NAME = "archive";
         public static final String COLUMN_NAME_TITLE = "title";
         public static final String COLUMN_NAME_LINK = "link";
-        public static final String COLUMN_NAME_URI = "uri";
         public static final String COLUMN_NAME_AUTHOR = "author";
         public static final String COLUMN_NAME_DESCRIPTION = "description";
         public static final String COLUMN_NAME_PUBLISH_DATE = "publishDate";

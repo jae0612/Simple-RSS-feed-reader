@@ -2,6 +2,7 @@ package com.rssfeeder.VO;
 
 import com.rometools.rome.feed.synd.SyndCategory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Data;
@@ -13,7 +14,8 @@ public class FeedVO {
     String link;
     String author;
     String description;
-    String pubDate;
+    LocalDateTime pubDate;
+    List<String> categories;
     String imageUrl;
     String imageTitle;
     String imageLink;
@@ -53,13 +55,19 @@ public class FeedVO {
         this.description = description;
     }
 
-    public String getPubDate() {
+    public LocalDateTime getPubDate() {
         return pubDate;
     }
 
-    public void setPubDate(String pubDate) {
+    public void setPubDate(LocalDateTime pubDate) {
         this.pubDate = pubDate;
     }
+
+    public List<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<String> categories) { this.categories = categories; }
 
     public String getImageUrl() {
         return imageUrl;

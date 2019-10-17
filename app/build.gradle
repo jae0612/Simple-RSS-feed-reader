@@ -18,6 +18,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
 }
 
 dependencies {
@@ -28,7 +32,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.rometools/rome
     implementation group: 'com.rometools', name: 'rome', version: '1.12.2'
     // https://mvnrepository.com/artifact/com.rometools/rome-modules
-    implementation group: 'com.rometools', name: 'rome-modules', version: '1.12.1'
+    implementation group: 'com.rometools', name: 'rome-modules', version: '1.8.0'
     compileOnly 'org.projectlombok:lombok:1.18.10'
     annotationProcessor 'org.projectlombok:lombok:1.18.10'
     testImplementation 'junit:junit:4.12'

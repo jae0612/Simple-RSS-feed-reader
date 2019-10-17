@@ -56,7 +56,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
         FeedVO currentArticle = articles.get(position);
 
-        String pubDateString = currentArticle.getPubDate();
+        String pubDateString = currentArticle.getPubDate().toString();
         /*
         try {
             String sourceDateString = currentArticle.getPubDate();
@@ -85,7 +85,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
         viewHolder.pubDate.setText(pubDateString);
 
-        /*
+
         StringBuilder categories = new StringBuilder();
         for (int i = 0; i < currentArticle.getCategories().size(); i++) {
             if (i == currentArticle.getCategories().size() - 1) {
@@ -94,8 +94,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 categories.append(currentArticle.getCategories().get(i)).append(", ");
             }
         }
-        */
-        viewHolder.category.setText("categories");
+
+        viewHolder.category.setText(categories);
 
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
 
@@ -111,7 +111,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 String title = articles.get(viewHolder.getAdapterPosition()).getTitle();
                 String content = articles.get(viewHolder.getAdapterPosition()).getDescription();
                 String image = articles.get(viewHolder.getAdapterPosition()).getImageUrl();
-                //String content = "content";
 
                 articleView.getSettings().setJavaScriptEnabled(true);
                 articleView.setHorizontalScrollBarEnabled(false);
