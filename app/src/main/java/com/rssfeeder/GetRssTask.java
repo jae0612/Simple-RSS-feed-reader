@@ -1,7 +1,14 @@
 package com.rssfeeder;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.StrictMode;
+import android.view.Gravity;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import com.rometools.modules.mediarss.types.UrlReference;
 import com.rometools.rome.feed.rss.Content;
@@ -9,6 +16,7 @@ import com.rometools.rome.feed.synd.SyndCategory;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.ParsingFeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
@@ -21,6 +29,7 @@ import com.rssfeeder.VO.FeedVO;
 
 import org.jdom2.Element;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -31,10 +40,12 @@ import java.util.List;
 
 //Jae
 public class GetRssTask extends AsyncTask<String,Void,Void> {
-
+    private Context mContext;
     RssListener listener;
     List<FeedVO> feedList = new ArrayList<>();
-
+    public GetRssTask(Context context){
+        mContext = context;
+    }
     @Override
     protected Void doInBackground(String[] urls) {
 
@@ -85,6 +96,29 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
                 }
                 for (FeedVO vo : feedList)
                     sb.append(vo.getTitle() + "\n");
+            } catch (MalformedURLException e){
+                ((Activity) mContext).runOnUiThread(() -> {
+
+                    new AlertDialog.Builder(mContext)
+                            .setTitle("Malformed URL")
+                            .setMessage("Wrong URL form, Please check URL : " + url)
+                            .setPositiveButton(android.R.string.yes, null)
+                            .show();
+
+                });
+                
+
+            } catch(ParsingFeedException e){
+                ((Activity) mContext).runOnUiThread(() -> {
+
+                    new AlertDialog.Builder(mContext)
+                            .setTitle("NOT an RSS URL")
+                            .setMessage("Wrong RSS form, Please check URL :  " + url)
+                            .setPositiveButton(android.R.string.yes, null)
+                            .show();
+
+
+                });
             } catch (Exception ex) {
                 ex.printStackTrace();
                 System.out.println("ERROR: " + ex.getMessage());

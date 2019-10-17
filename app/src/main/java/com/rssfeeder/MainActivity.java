@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
         // The view model reads & shows feed articles
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
         viewModel.feeders = readFeederDB();
+        viewModel.addContext(this);
 
         progressBar = findViewById(R.id.progressBar);
 
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
             public void onChanged(List<FeedVO> articles) {
                 /** Change the ViewModel MutableList --> ArticleAdaptor **/
                 if (articles != null) {
-                    //saveFavoritePages();
+                    saveFavoritePages();
                     // check if new articles received, and update the DB
                     List<FeedVO> list = articles;
                     List<FeedVO> list_favorite = readFavoriteArchieve();
@@ -178,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 /** Refresh: Clear the current list --> Refetch **/
-                //saveFavoritePages();
+                saveFavoritePages();
 
                 render();
             }

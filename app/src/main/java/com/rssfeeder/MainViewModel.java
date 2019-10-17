@@ -1,5 +1,7 @@
 package com.rssfeeder;
 
+import android.app.Application;
+import android.content.Context;
 import android.os.StrictMode;
 
 import java.net.URL;
@@ -22,12 +24,16 @@ public class MainViewModel extends ViewModel implements RssListener{
     private MutableLiveData<List<FeedVO>> articleListLive = null;
     public ArrayList<String> feeders = new ArrayList<>();
     private MutableLiveData<String> snackbar = new MutableLiveData<>();
-
+    private Context context;
     public MainViewModel(){
         super();
+
         // Test feeders
         // addFeeder("https://www.androidauthority.com/feed");
         // addFeeder("https://www.cnet.com/rss/news/");
+    }
+    public void addContext(Context context){
+        this.context = context;
     }
 
 
@@ -86,7 +92,7 @@ public class MainViewModel extends ViewModel implements RssListener{
 
     // read feed on the background
     public void fetchFeed() {
-        GetRssTask rssTask = new GetRssTask();
+        GetRssTask rssTask = new GetRssTask(context);
         rssTask.setListener(this);
         rssTask.execute(feeders.toArray(new String[feeders.size()])); // read all feeders
     }
