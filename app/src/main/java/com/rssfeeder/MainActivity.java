@@ -91,6 +91,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        /* Reset DB for TEST */
+        /*U
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+        db.execSQL("delete from "+ FeedEntry.TABLE_NAME);
+        db.execSQL("delete from "+ FeedEntry.TABLE_NAME_FAVORITE);
+        */
+
+
         setContentView(R.layout.activity_main);
 
         // The view model reads & shows feed articles
@@ -117,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
                     // check if new articles received, and update the DB
                     List<FeedVO> list = articles;
                     List<FeedVO> list_favorite = readFavoriteArchieve();
-                    boolean isNew;
+
 //                    for(FeedVO fvo : articles){
 //                        isNew = true;
 //                        // check if new article read
@@ -137,11 +146,14 @@ public class MainActivity extends AppCompatActivity {
 
 
                         // check if favorite
-                        for(FeedVO fvo : list){
-                            if(list_favorite.contains(fvo)){
+                    for(FeedVO fvo : list){
+                        for(FeedVO fav : list_favorite){
+                            if(fvo.equals(fav)){
                                 fvo.setFavorite(true);
+                                break;
                             }
                         }
+                    }
 
 
                     // Only show articles from the favorite DB
