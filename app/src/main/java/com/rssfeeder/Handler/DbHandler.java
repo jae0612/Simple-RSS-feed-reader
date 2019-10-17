@@ -34,13 +34,19 @@ public class DbHandler extends SQLiteOpenHelper {
                     FeedEntry.COLUMN_NAME_IMAGE_LINK + " TEXT," +
                     FeedEntry.COLUMN_NAME_IMAGE_DESCRIPTION + " TEXT)";
 
+    // Feeders DB
+    private static final String SQL_CREATE_ENTRIES_FEEDER =
+            "CREATE TABLE " + FeedEntry.TABLE_NAME_FEEDER + " (" +
+                    FeedEntry.COLUMN_NAME_LINK + " TEXT PRIMARY KEY)";
+
     public DbHandler(Context context){
-        super(context ,"Rss2.db", null, 1);
+        super(context ,"Rss3.db", null, 1);
     }
     @Override
     public void onCreate(SQLiteDatabase db){
         db.execSQL(SQL_CREATE_ENTRIES);
         db.execSQL(SQL_CREATE_ENTRIES_FAVORITE);
+        db.execSQL(SQL_CREATE_ENTRIES_FEEDER);
     }
 
     @Override

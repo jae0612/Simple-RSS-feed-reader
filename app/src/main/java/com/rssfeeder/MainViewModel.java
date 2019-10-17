@@ -20,14 +20,14 @@ import com.rssfeeder.VO.FeedVO;
 public class MainViewModel extends ViewModel implements RssListener{
 
     private MutableLiveData<List<FeedVO>> articleListLive = null;
-    private ArrayList<String> feeders = new ArrayList<>();
+    public ArrayList<String> feeders = new ArrayList<>();
     private MutableLiveData<String> snackbar = new MutableLiveData<>();
 
     public MainViewModel(){
         super();
         // Test feeders
-        addFeeder("https://www.androidauthority.com/feed");
-        addFeeder("https://www.cnet.com/rss/news/");
+        // addFeeder("https://www.androidauthority.com/feed");
+        // addFeeder("https://www.cnet.com/rss/news/");
     }
 
     // add URL if not already exists

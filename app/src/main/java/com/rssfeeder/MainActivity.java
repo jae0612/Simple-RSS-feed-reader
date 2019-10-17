@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         // The view model reads & shows feed articles
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.feeders = readFeederDB();
 
         progressBar = findViewById(R.id.progressBar);
 
@@ -115,11 +116,9 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Only show articles from the favorite DB
+                    if(favoriteMode) list = readFavoriteArchieve();
 
-                    if(favoriteMode){
-                        // Only show articles from the favorite DB
-                        list = readFavoriteArchieve();
-                    }
                     // create article adapter
                     mAdapter = new ArticleAdapter(list, MainActivity.this);
                     mRecyclerView.setAdapter(mAdapter);
@@ -261,6 +260,7 @@ public class MainActivity extends AppCompatActivity {
 
             ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
         }else if (id == R.id.add_feeder) {
+            favoriteMode = false;
             // 'Add a Feeder' clicked
             androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
             alertDialog.setTitle("Add a Feeder");
@@ -278,13 +278,22 @@ public class MainActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             String url = input.getText().toString();
                             viewModel.addFeeder(url);
+
+                            /**
+                             * Validity Check Code
+                             */
+
+                            // write to DB
+                            writeFeederDB(url);
+
                             dialog.dismiss();
                         }
                     });
-            alertDialog.show();
 
+            alertDialog.show();
             ((TextView) alertDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
         }else if (id == R.id.delete_feeder) {
+            favoriteMode = false;
             // 'Delete Feeders' clicked
 
             final String[] feedersList = viewModel.getFeeders();
@@ -307,6 +316,8 @@ public class MainActivity extends AppCompatActivity {
                     for(int i=0; i<checkedItems.length; i++){
                         if(checkedItems[i]){
                             viewModel.removeFeeder(feedersList[i]);
+                            // Remove from the DB
+                            delFeederDB(feedersList[i]);
                         }
                     }
 
@@ -465,6 +476,44 @@ public class MainActivity extends AppCompatActivity {
         String selection = FeedEntry.COLUMN_NAME_LINK+ " LIKE ?";
         int delRows = db.delete(FeedEntry.TABLE_NAME_FAVORITE, selection, delItemsKeys);
     }
+
+
+    /** DB for Feed URLs **/
+    public void writeFeederDB(String url){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(FeedEntry.COLUMN_NAME_LINK, url);
+        long rowId = db.insert(FeedEntry.TABLE_NAME_FEEDER, null,values);
+    }
+
+    //DB read
+    public ArrayList<String> readFeederDB(){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+
+        String order = FeedEntry.COLUMN_NAME_LINK + " DESC";
+        Cursor cursor = db.query(FeedEntry.TABLE_NAME_FEEDER,null,null,null,null,null,order,null);
+
+        ArrayList<String> urls = new ArrayList<>();
+        while(cursor.moveToNext()) {
+            String link = cursor.getString(
+                    cursor.getColumnIndexOrThrow(FeedEntry.COLUMN_NAME_LINK));
+            // Restore a FeedVO object
+            urls.add(link);
+        }
+
+        return urls;
+    }
+    //DB delete
+    public void delFeederDB(String url){
+        DbHandler dbHandler = new DbHandler(getApplicationContext());
+        SQLiteDatabase db = dbHandler.getWritableDatabase();
+        String selection = FeedEntry.COLUMN_NAME_LINK+ " LIKE ?";
+        int delRows = db.delete(FeedEntry.TABLE_NAME_FEEDER, selection, new String[]{url});
+    }
+
+
     //DB Close
     @Override
     protected void onDestroy() {
