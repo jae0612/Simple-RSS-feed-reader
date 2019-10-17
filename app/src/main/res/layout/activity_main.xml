@@ -14,9 +14,8 @@
         android:theme="@style/AppTheme.AppBarOverlay">
 
 
-
     </com.google.android.material.appbar.AppBarLayout>
-
+ß
 
     <include layout="@layout/content_main" />
 

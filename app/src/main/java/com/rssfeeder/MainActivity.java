@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -49,6 +50,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -63,6 +66,26 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout relativeLayout;
 
     private boolean favoriteMode = false;
+    class Newest implements Comparator<FeedVO> {
+        @Override
+        public int compare(FeedVO o1, FeedVO o2) {
+            return - o1.getPubDate().compareTo(o2.getPubDate());
+        }
+    }
+    class Oldest implements Comparator<FeedVO>{
+        @Override
+        public int compare(FeedVO o1, FeedVO o2) {
+            return o1.getPubDate().compareTo(o2.getPubDate());
+        }
+    }
+
+    class Alphabetical implements Comparator<FeedVO>{
+        @Override
+        public int compare(FeedVO o1, FeedVO o2) {
+            return o1.getTitle().compareTo(o2.getTitle());
+        }
+    }
+    private Comparator sort = new Newest();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,39 +112,43 @@ public class MainActivity extends AppCompatActivity {
             public void onChanged(List<FeedVO> articles) {
                 /** Change the ViewModel MutableList --> ArticleAdaptor **/
                 if (articles != null) {
-                    saveFavoritePages();
+                    //saveFavoritePages();
                     // check if new articles received, and update the DB
-                    List<FeedVO> list = readArchieve();
+                    List<FeedVO> list = articles;
                     List<FeedVO> list_favorite = readFavoriteArchieve();
                     boolean isNew;
-                    for(FeedVO fvo : articles){
-                        isNew = true;
-                        // check if new article read
-                        for(FeedVO comp : list){
-                            if(fvo.equals(comp)){
-                                // this  article is already in the DB
-                                isNew=false;
-                                break;
-                            }
-                        }
-                        if(isNew){
-                            // save the new article in the DB
-                            writeArchieve(fvo);
-                            list.add(fvo);
-                        }
-                    }
+//                    for(FeedVO fvo : articles){
+//                        isNew = true;
+//                        // check if new article read
+//                        for(FeedVO comp : list){
+//                            if(fvo.equals(comp)){
+//                                // this  article is already in the DB
+//                                isNew=false;
+//                                break;
+//                            }
+//                        }
+//                        if(isNew){
+//                            // save the new article in the DB
+//                            //writeArchieve(fvo);
+//                            list.add(fvo);
+//                        }
+//                    }
 
-                    for(FeedVO fvo : list){
+
                         // check if favorite
-                        for(FeedVO comp : list_favorite){
-                            if(fvo.equals(comp)){
+                        for(FeedVO fvo : list){
+                            if(list_favorite.contains(fvo)){
                                 fvo.setFavorite(true);
                             }
                         }
-                    }
+
 
                     // Only show articles from the favorite DB
                     if(favoriteMode) list = readFavoriteArchieve();
+
+                    //Sort based on option
+                    Collections.sort(list,sort);
+
 
                     // create article adapter
                     mAdapter = new ArticleAdapter(list, MainActivity.this);
@@ -133,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
 
         viewModel.getSnackbar().observe(this, new Observer<String>() {
             @Override
@@ -152,12 +178,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 /** Refresh: Clear the current list --> Refetch **/
-                saveFavoritePages();
+                //saveFavoritePages();
 
-                mAdapter.getArticleList().clear(); // clear the previous articles list when refreshed
-                mAdapter.notifyDataSetChanged();
-                mSwipeRefreshLayout.setRefreshing(true);
-                viewModel.fetchFeed(); //read articles
+                render();
             }
         });
 
@@ -184,6 +207,13 @@ public class MainActivity extends AppCompatActivity {
             viewModel.fetchFeed();
         }
 
+    }
+
+    public void render(){
+        mAdapter.getArticleList().clear(); // clear the previous articles list when refreshed
+        mAdapter.notifyDataSetChanged();
+        mSwipeRefreshLayout.setRefreshing(true);
+        viewModel.fetchFeed(); //read articles
     }
 
     public void saveFavoritePages(){
@@ -347,6 +377,15 @@ public class MainActivity extends AppCompatActivity {
             mAdapter.notifyDataSetChanged();
             mSwipeRefreshLayout.setRefreshing(true);
             viewModel.fetchFeed(); //read articles
+        }else if (id == R.id.newest_sort){
+            sort = new Newest();
+            render();
+        }else if (id == R.id.oldest_sort){
+            sort = new Oldest();
+            render();
+        }else if (id == R.id.alphabet_sort){
+            sort = new Alphabetical();
+            render();
         }
 
         return super.onOptionsItemSelected(item);

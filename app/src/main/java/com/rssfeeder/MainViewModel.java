@@ -16,7 +16,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import com.rssfeeder.VO.FeedVO;
-//Jae
+
 public class MainViewModel extends ViewModel implements RssListener{
 
     private MutableLiveData<List<FeedVO>> articleListLive = null;

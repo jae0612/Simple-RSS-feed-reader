@@ -106,8 +106,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             }
         //viewHolder.category.setText("categories");
 
-
-        viewHolder.category.setText(categories);
+        //viewHolder.category.setText(categories);
 
         // popup the article when clicked
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -158,7 +157,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 fvo.setFavorite(isChecked);
             }
         });
-
     }
 
     @Override
