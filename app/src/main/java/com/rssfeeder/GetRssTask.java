@@ -40,9 +40,13 @@ import java.util.List;
 
 //Jae
 public class GetRssTask extends AsyncTask<String,Void,Void> {
-    private Context mContext;
+    private Context mContext= null;
     RssListener listener;
     List<FeedVO> feedList = new ArrayList<>();
+
+    public GetRssTask(){
+
+    }
     public GetRssTask(Context context){
         mContext = context;
     }
@@ -106,7 +110,6 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
                             .show();
 
                 });
-                
 
             } catch(ParsingFeedException e){
                 ((Activity) mContext).runOnUiThread(() -> {
@@ -123,18 +126,14 @@ public class GetRssTask extends AsyncTask<String,Void,Void> {
                 ex.printStackTrace();
                 System.out.println("ERROR: " + ex.getMessage());
             }
+            // After finishing read, push the feed list to the MainViewModel
+            listener.onFeedReceived(feedList);
         }
         return null;
     }
 
     public void setListener(RssListener listener){
         this.listener = listener;
-    }
-
-    // After finishing read, push the feed list to the MainViewModel
-    @Override
-    protected void onPostExecute(Void result){
-        listener.onFeedReceived(feedList);
     }
 
 }
