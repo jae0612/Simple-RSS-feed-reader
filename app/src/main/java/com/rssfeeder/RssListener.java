@@ -1,3 +1,10 @@
+/**
+ *
+ *
+ * @author Jae Shin (u6858132)
+ * @author Jihwan Bae (u6871659)
+ */
+
 package com.rssfeeder;
 
 import com.rssfeeder.VO.FeedVO;

@@ -1,3 +1,11 @@
+/**
+ *
+ *
+ * @author Jae Shin (u6858132)
+ * @author Jihwan Bae (u6871659)
+ */
+
+
 package com.rssfeeder;
 
 import androidx.appcompat.app.AlertDialog;
@@ -295,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
             // 'About' clicked
             androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
             alertDialog.setTitle(R.string.app_name);
-            alertDialog.setMessage(Html.fromHtml(MainActivity.this.getString(R.string.info_text) +
+            alertDialog.setMessage(Html.fromHtml(MainActivity.this.getString(R.string.about_manual) +
                     MainActivity.this.getString(R.string.author)));
             alertDialog.setButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL, "OK",
                     new DialogInterface.OnClickListener() {
@@ -324,14 +332,17 @@ public class MainActivity extends AppCompatActivity {
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             String url = input.getText().toString();
-                            viewModel.addFeeder(url);
 
-                            /**
-                             * Validity Check Code
-                             */
+                            // Check the validity of feeder's URL
+                            if(Validation.isValueFeeder(url)) {
+                                viewModel.addFeeder(url);
+                                // write to DB
+                                writeFeederDB(url);
+                            }else{
+                                // invalid feeder url
+                                Toast.makeText(getApplicationContext(),"ENTER VALID URL...",Toast.LENGTH_LONG).show();
+                            }
 
-                            // write to DB
-                            writeFeederDB(url);
 
                             dialog.dismiss();
                         }

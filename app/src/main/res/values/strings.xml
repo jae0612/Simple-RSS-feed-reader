@@ -1,10 +1,19 @@
 <resources>
-    <string name="app_name">RssFeeder</string>
-    <string name="action_about">About</string>
+    <string name="app_name">Feederby</string>
+    <string name="action_about">Manual</string>
     <string name="alert_title">Attention!</string>
     <string name="alert_message">Unable to load data. \nCheck your connection!</string>
     <string name="alert_positive">Close</string>
     <string name="video">Video</string>
     <string name="info_text">This is a simple app that shows the use of RSS Feed. </string>
     <string name="author">&lt;br /&gt;&lt;br /&gt;Written by Jae Shin and Jihwan Bae</string>
+
+    <string name="about_manual"> This is a simple app that shows RSS feeds.&lt;br /&gt;
+        1. To add a feeder, enter the URL in the Add a Feeder menu.&lt;br /&gt;
+        2. Check the URL to remove a feeder in the Delete Feeders menu.&lt;br /&gt;
+        3. To save a favorite article, check the start button.&lt;br /&gt;
+        4. Click the favorite menu, to see the collection of your favorite articles.&lt;br /&gt;
+        5. Uncheck the start button, to remove from the favorite collection.&lt;br /&gt;
+        6. Click the sort button to choose an option for sorting.&lt;br /&gt;
+    </string>
 </resources>
